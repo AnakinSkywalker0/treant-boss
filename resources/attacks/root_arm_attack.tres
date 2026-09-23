@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://bi81jli33r1s5"]
+
+[ext_resource type="Script" uid="uid://c5e2rglkpyugd" path="res://resources/attack_data.gd" id="1_2batt"]
+
+[resource]
+script = ExtResource("1_2batt")
+id = &"root_arm_attack"
+display_name = "Short-Range Root Attack"
+telegraph_time = 0.4
+active_time = 0.35
+damage = 12.0
+range = 3.0
+debug_color = Color(0.4, 0.25, 0.1, 1)

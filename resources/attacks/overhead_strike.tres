@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://dt2uboenl43t8"]
+
+[ext_resource type="Script" uid="uid://c5e2rglkpyugd" path="res://resources/attack_data.gd" id="1_qthie"]
+
+[resource]
+script = ExtResource("1_qthie")
+id = &"overhead_strike"
+display_name = "Overhead Strike"
+telegraph_time = 0.7
+active_time = 0.25
+recovery_time = 0.5
+damage = 16.0
+debug_color = Color(0.9, 0.2, 0.1, 1)

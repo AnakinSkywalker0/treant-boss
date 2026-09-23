@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://bed05ps5iwgnq"]
+
+[ext_resource type="Script" uid="uid://cny4kndyma1yi" path="res://scripts/player/player_controller.gd" id="1_dovo2"]
+[ext_resource type="Script" uid="uid://xgujyjm3qplb" path="res://scripts/common/hurtbox.gd" id="2_gmlin"]
+[ext_resource type="Texture2D" uid="uid://dvs2cbicnx5n2" path="res://textures/player_body.png" id="2_lvxji"]
+[ext_resource type="Script" uid="uid://dd88pgj1rx8rn" path="res://scripts/common/hitbox.gd" id="4_lvxji"]
+[ext_resource type="Texture2D" uid="uid://qmfgxohawexy" path="res://textures/melee_swing.png" id="5_75vfm"]
+[ext_resource type="Script" uid="uid://wn4ktt2x0gl8" path="res://scripts/common/health.gd" id="5_p47bc"]
+[ext_resource type="Texture2D" uid="uid://nyvrjgnu64ee" path="res://textures/facing_arrow.png" id="7_0owmy"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_p47bc"]
+radius = 22.0
+height = 96.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_75vfm"]
+radius = 24.0
+height = 100.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p47bc"]
+size = Vector2(56, 70)
+
+[node name="Player" type="CharacterBody2D" unique_id=1217469680 groups=["player"]]
+collision_layer = 8
+script = ExtResource("1_dovo2")
+
+[node name="BodySprite" type="Sprite2D" parent="." unique_id=1803321620]
+position = Vector2(0, -48)
+texture = ExtResource("2_lvxji")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=7763973]
+position = Vector2(0, -48)
+shape = SubResource("CapsuleShape2D_p47bc")
+
+[node name="Hurtbox" type="Area2D" parent="." unique_id=514389632]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("2_gmlin")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1093314325]
+position = Vector2(0, -48)
+shape = SubResource("CapsuleShape2D_75vfm")
+
+[node name="AttackOrigin" type="Marker2D" parent="." unique_id=1455060957]
+position = Vector2(0, -48)
+
+[node name="AttackHitbox" type="Area2D" parent="AttackOrigin" unique_id=2036813102]
+collision_layer = 0
+collision_mask = 4
+monitoring = false
+script = ExtResource("4_lvxji")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/AttackHitbox" unique_id=1040290456]
+shape = SubResource("RectangleShape2D_p47bc")
+
+[node name="AttackIndicator" type="Sprite2D" parent="AttackOrigin" unique_id=1270459872]
+visible = false
+modulate = Color(1, 1, 1, 0.9)
+texture = ExtResource("5_75vfm")
+
+[node name="Health" type="Node" parent="." unique_id=1609620832]
+script = ExtResource("5_p47bc")
+
+[node name="HealthLabel" type="Label" parent="." unique_id=625976441]
+custom_minimum_size = Vector2(120, 24)
+offset_left = -60.0
+offset_top = -140.0
+offset_right = -59.0
+offset_bottom = -117.0
+theme_override_font_sizes/font_size = 18
+text = "HP 100/100"
+horizontal_alignment = 1
+
+[node name="FacingMarker" type="Sprite2D" parent="." unique_id=1508333760]
+position = Vector2(30, -48)
+texture = ExtResource("7_0owmy")
+
+[connection signal="damaged" from="Hurtbox" to="." method="_on_hurtbox_damaged"]

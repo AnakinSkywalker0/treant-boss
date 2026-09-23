@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://c715ilmgbt66f"]
+
+[ext_resource type="Script" uid="uid://c5e2rglkpyugd" path="res://resources/attack_data.gd" id="1_1cjd2"]
+
+[resource]
+script = ExtResource("1_1cjd2")
+id = &"projectile_throw"
+display_name = "Spiked Bulb Throw"
+telegraph_time = 0.6
+active_time = 0.8
+recovery_time = 0.5
+damage = 8.0
+range = 10.0
+debug_color = Color(0.7, 0.15, 0.6, 1)

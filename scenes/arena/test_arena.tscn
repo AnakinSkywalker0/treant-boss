@@ -1,0 +1,77 @@
+[gd_scene format=3 uid="uid://dijv2i5ck7aiy"]
+
+[ext_resource type="Texture2D" uid="uid://bm3au60gt8coj" path="res://textures/ground.png" id="1_btlyn"]
+[ext_resource type="PackedScene" uid="uid://bed05ps5iwgnq" path="res://scenes/player/player.tscn" id="1_kaasr"]
+[ext_resource type="Script" uid="uid://dhtl62l6giglb" path="res://scripts/arena/test_arena.gd" id="1_wrrcd"]
+[ext_resource type="PackedScene" uid="uid://dtyj23r1jvyde" path="res://scenes/boss/treant_boss.tscn" id="3_gnkp2"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kti05"]
+size = Vector2(960, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wt5dk"]
+size = Vector2(20, 600)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kaasr"]
+size = Vector2(20, 600)
+
+[node name="TestArena" type="Node2D" unique_id=172135823]
+script = ExtResource("1_wrrcd")
+
+[node name="Ground" type="StaticBody2D" parent="." unique_id=1650176015]
+
+[node name="Sprite2D" type="Sprite2D" parent="Ground" unique_id=1829528369]
+position = Vector2(0, 32)
+scale = Vector2(7.5, 1)
+texture = ExtResource("1_btlyn")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground" unique_id=123197127]
+position = Vector2(0, 32)
+shape = SubResource("RectangleShape2D_kti05")
+
+[node name="ArenaCamera" type="Camera2D" parent="." unique_id=1437125112]
+position = Vector2(0, -180)
+zoom = Vector2(0.78, 0.78)
+
+[node name="Corners" type="Node2D" parent="." unique_id=961082317]
+
+[node name="ArenaLeftEdge" type="Marker2D" parent="Corners" unique_id=910754879 groups=["boss_arena_corner"]]
+position = Vector2(-380, 0)
+
+[node name="ArenaRightEdge" type="Marker2D" parent="Corners" unique_id=529932417 groups=["boss_arena_corner"]]
+position = Vector2(380, 0)
+
+[node name="PlayerSpawn" type="Marker2D" parent="." unique_id=1766779231]
+position = Vector2(250, 0)
+
+[node name="BossSpawn" type="Marker2D" parent="." unique_id=417263628]
+position = Vector2(-250, 0)
+
+[node name="WallLeft" type="StaticBody2D" parent="." unique_id=2092236989]
+position = Vector2(-450, -300)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallLeft" unique_id=2040203946]
+shape = SubResource("RectangleShape2D_wt5dk")
+
+[node name="WallRight" type="StaticBody2D" parent="." unique_id=423039192]
+position = Vector2(450, -300)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WallRight" unique_id=184777150]
+shape = SubResource("RectangleShape2D_kaasr")
+
+[node name="Player" parent="." unique_id=1217469680 instance=ExtResource("1_kaasr")]
+position = Vector2(250, 0)
+
+[node name="TreantBoss" parent="." unique_id=1893810821 instance=ExtResource("3_gnkp2")]
+position = Vector2(-250, 0)
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=448524322]
+
+[node name="ControlsHint" type="Label" parent="HUD" unique_id=176238936]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 17.0
+offset_bottom = 35.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "A/D move   Space jump   Shift dash (invulnerable)   J / Left-click attack (also parries the bulb)   R restart"

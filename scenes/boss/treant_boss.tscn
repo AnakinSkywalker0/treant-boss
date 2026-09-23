@@ -1,0 +1,239 @@
+[gd_scene format=3 uid="uid://dtyj23r1jvyde"]
+
+[ext_resource type="Script" uid="uid://dkmmswivsplxy" path="res://scripts/boss/treant_boss.gd" id="1_y14ah"]
+[ext_resource type="Texture2D" uid="uid://br180is8ijvak" path="res://textures/treant_body.png" id="2_vp64q"]
+[ext_resource type="Script" uid="uid://wn4ktt2x0gl8" path="res://scripts/common/health.gd" id="3_dy18l"]
+[ext_resource type="Script" uid="uid://xgujyjm3qplb" path="res://scripts/common/hurtbox.gd" id="3_vp64q"]
+[ext_resource type="Script" uid="uid://b28fepk0drg2e" path="res://scripts/boss/detection_area.gd" id="4_dy18l"]
+[ext_resource type="Script" uid="uid://dd88pgj1rx8rn" path="res://scripts/common/hitbox.gd" id="5_efjh8"]
+[ext_resource type="Script" uid="uid://couw105c3bde4" path="res://addons/godot_state_charts/state_chart.gd" id="6_obukw"]
+[ext_resource type="Texture2D" uid="uid://d3snakqcs75mn" path="res://textures/unit_square.png" id="7_dy18l"]
+[ext_resource type="Script" uid="uid://jk2jm1g6q853" path="res://addons/godot_state_charts/compound_state.gd" id="7_pnru4"]
+[ext_resource type="Script" uid="uid://cytafq8i1y8qm" path="res://addons/godot_state_charts/atomic_state.gd" id="8_4r5vx"]
+[ext_resource type="Texture2D" uid="uid://qmfgxohawexy" path="res://textures/melee_swing.png" id="8_efjh8"]
+[ext_resource type="Script" uid="uid://cf1nsco3w0mf6" path="res://addons/godot_state_charts/transition.gd" id="9_egplq"]
+[ext_resource type="Script" uid="uid://c1vp0ojjvaby1" path="res://addons/godot_state_charts/parallel_state.gd" id="10_kuay0"]
+[ext_resource type="Resource" uid="uid://d05hoij0wrghc" path="res://resources/guards/hp_below_50_root_ready.tres" id="11_pb0e7"]
+[ext_resource type="Resource" uid="uid://dnc3meykhxma" path="res://resources/guards/hp_below_10.tres" id="12_6p603"]
+
+[sub_resource type="Gradient" id="Gradient_dy18l"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_efjh8"]
+radius = 55.0
+height = 200.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_obukw"]
+radius = 58.0
+height = 205.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pnru4"]
+radius = 600.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_efjh8"]
+size = Vector2(180, 140)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_egplq"]
+size = Vector2(160, 24)
+
+[node name="TreantBoss" type="CharacterBody2D" unique_id=1893810821 groups=["boss"]]
+collision_layer = 16
+script = ExtResource("1_y14ah")
+
+[node name="CorruptionParticles" type="CPUParticles2D" parent="." unique_id=2004918118]
+position = Vector2(0, -4)
+amount = 28
+texture = ExtResource("7_dy18l")
+lifetime = 1.8
+preprocess = 1.8
+emission_shape = 3
+emission_rect_extents = Vector2(95, 8)
+direction = Vector2(0, -1)
+spread = 20.0
+gravity = Vector2(0, -15)
+initial_velocity_min = 15.0
+initial_velocity_max = 45.0
+scale_amount_min = 0.5
+color = Color(0.45, 0.15, 0.5, 0.8)
+color_ramp = SubResource("Gradient_dy18l")
+
+[node name="EnrageGlow" type="Sprite2D" parent="." unique_id=1614976682]
+visible = false
+modulate = Color(1, 0.1, 0.1, 0.35)
+position = Vector2(0, -100)
+scale = Vector2(19, 29)
+texture = ExtResource("7_dy18l")
+
+[node name="BodySprite" type="Sprite2D" parent="." unique_id=1916673114]
+position = Vector2(0, -100)
+texture = ExtResource("2_vp64q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1084719523]
+position = Vector2(0, -100)
+shape = SubResource("CapsuleShape2D_efjh8")
+
+[node name="Health" type="Node" parent="." unique_id=1190257911]
+script = ExtResource("3_dy18l")
+max_health = 800.0
+
+[node name="Hurtbox" type="Area2D" parent="." unique_id=646001281]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("3_vp64q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1332234279]
+position = Vector2(0, -100)
+shape = SubResource("CapsuleShape2D_obukw")
+
+[node name="DetectionArea" type="Area2D" parent="." unique_id=362889568]
+collision_mask = 8
+script = ExtResource("4_dy18l")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=2094482842]
+position = Vector2(0, -90)
+shape = SubResource("CircleShape2D_pnru4")
+
+[node name="AttackOrigin" type="Marker2D" parent="." unique_id=1334430151]
+position = Vector2(0, -90)
+
+[node name="MeleeHitbox" type="Area2D" parent="AttackOrigin" unique_id=2027186448]
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+script = ExtResource("5_efjh8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/MeleeHitbox" unique_id=1036842179]
+position = Vector2(70, 0)
+shape = SubResource("RectangleShape2D_efjh8")
+
+[node name="LimbIndicator" type="Sprite2D" parent="AttackOrigin" unique_id=1945106214]
+texture = ExtResource("7_dy18l")
+
+[node name="LimbHitbox" type="Area2D" parent="AttackOrigin" unique_id=1332657338]
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+script = ExtResource("5_efjh8")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/LimbHitbox" unique_id=1523095570]
+shape = SubResource("RectangleShape2D_egplq")
+
+[node name="MeleeIndicator" type="Sprite2D" parent="AttackOrigin" unique_id=508748043]
+visible = false
+position = Vector2(90, 0)
+texture = ExtResource("8_efjh8")
+
+[node name="StateLabel" type="Label" parent="." unique_id=1026767197]
+custom_minimum_size = Vector2(320, 30)
+offset_left = -160.0
+offset_top = -260.0
+offset_right = 160.0
+offset_bottom = -226.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 24
+text = "Idle"
+horizontal_alignment = 1
+
+[node name="StateChart" type="Node" parent="." unique_id=1795590027]
+script = ExtResource("6_obukw")
+initial_expression_properties = {
+"hp_percent": 1.0,
+"root_ready": true
+}
+
+[node name="Boss" type="Node" parent="StateChart" unique_id=801742304]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Idle")
+
+[node name="Idle" type="Node" parent="StateChart/Boss" unique_id=869398199]
+script = ExtResource("8_4r5vx")
+
+[node name="ToAggro" type="Node" parent="StateChart/Boss/Idle" unique_id=1928481636]
+script = ExtResource("9_egplq")
+to = NodePath("../../Aggro")
+event = &"player_detected"
+delay_in_seconds = "0.0"
+
+[node name="Aggro" type="Node" parent="StateChart/Boss" unique_id=49981566]
+script = ExtResource("10_kuay0")
+
+[node name="AttackPattern" type="Node" parent="StateChart/Boss/Aggro" unique_id=1380816278]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Melee")
+
+[node name="Melee" type="Node" parent="StateChart/Boss/Aggro/AttackPattern" unique_id=1298181708]
+script = ExtResource("8_4r5vx")
+
+[node name="ToLongRange" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/Melee" unique_id=1023861964]
+script = ExtResource("9_egplq")
+to = NodePath("../../LongRange")
+event = &"combo_finished"
+delay_in_seconds = "0.0"
+
+[node name="LongRange" type="Node" parent="StateChart/Boss/Aggro/AttackPattern" unique_id=380894192]
+script = ExtResource("8_4r5vx")
+
+[node name="ToRootAttack" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/LongRange" unique_id=1582521956]
+script = ExtResource("9_egplq")
+to = NodePath("../../RootAttack")
+event = &"ranged_finished"
+guard = ExtResource("11_pb0e7")
+delay_in_seconds = "0.0"
+
+[node name="ToMelee" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/LongRange" unique_id=1424654530]
+script = ExtResource("9_egplq")
+to = NodePath("../../Melee")
+event = &"ranged_finished"
+delay_in_seconds = "0.0"
+
+[node name="RootAttack" type="Node" parent="StateChart/Boss/Aggro/AttackPattern" unique_id=1134638201]
+script = ExtResource("8_4r5vx")
+
+[node name="ToMelee" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/RootAttack" unique_id=1572866516]
+script = ExtResource("9_egplq")
+to = NodePath("../../Melee")
+event = &"root_finished"
+delay_in_seconds = "0.0"
+
+[node name="EnrageTrack" type="Node" parent="StateChart/Boss/Aggro" unique_id=1126465343]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Normal")
+
+[node name="Normal" type="Node" parent="StateChart/Boss/Aggro/EnrageTrack" unique_id=1022278686]
+script = ExtResource("8_4r5vx")
+
+[node name="ToEnraged" type="Node" parent="StateChart/Boss/Aggro/EnrageTrack/Normal" unique_id=727708739]
+script = ExtResource("9_egplq")
+to = NodePath("../../Enraged")
+event = &"health_changed"
+guard = ExtResource("12_6p603")
+delay_in_seconds = "0.0"
+
+[node name="Enraged" type="Node" parent="StateChart/Boss/Aggro/EnrageTrack" unique_id=406160606]
+script = ExtResource("8_4r5vx")
+
+[node name="Defeated" type="Node" parent="StateChart/Boss" unique_id=1947085457]
+script = ExtResource("8_4r5vx")
+
+[node name="ToDefeated" type="Node" parent="StateChart/Boss" unique_id=1071505668]
+script = ExtResource("9_egplq")
+to = NodePath("../Defeated")
+event = &"died"
+delay_in_seconds = "0.0"
+
+[node name="HealthBar" type="Node2D" parent="." unique_id=1240779936]
+position = Vector2(-80, -230)
+
+[node name="BarBackground" type="ColorRect" parent="HealthBar" unique_id=1502985562]
+offset_right = 160.0
+offset_bottom = 16.0
+color = Color(0.1, 0.1, 0.1, 0.85)
+
+[node name="BarFill" type="ColorRect" parent="HealthBar" unique_id=703601172]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 158.0
+offset_bottom = 14.0
+color = Color(0.25, 0.8, 0.25, 1)

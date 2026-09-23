@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://dq3kuarkgsigk"]
+
+[ext_resource type="Script" uid="uid://c5e2rglkpyugd" path="res://resources/attack_data.gd" id="1_7d60e"]
+
+[resource]
+script = ExtResource("1_7d60e")
+id = &"arm_swipe"
+display_name = "Arm Swipe"
+range = 2.5
+debug_color = Color(0.9, 0.5, 0.1, 1)

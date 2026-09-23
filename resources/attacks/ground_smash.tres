@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AttackData" format=3 uid="uid://0smwhqkrps8"]
+
+[ext_resource type="Script" uid="uid://c5e2rglkpyugd" path="res://resources/attack_data.gd" id="1_whn1y"]
+
+[resource]
+script = ExtResource("1_whn1y")
+id = &"ground_smash"
+display_name = "Ground Smash"
+telegraph_time = 0.6
+recovery_time = 0.6
+damage = 14.0
+range = 3.5
+debug_color = Color(0.6, 0.4, 0.15, 1)
