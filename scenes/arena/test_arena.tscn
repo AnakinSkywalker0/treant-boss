@@ -82,4 +82,4 @@ offset_bottom = 35.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 16
-text = "A/D move (hold Ctrl to walk)   Space jump   Shift dash (invulnerable)   J / Left-click attack (also parries the bulb)   R restart"
+text = "A/D move (hold Ctrl to walk)   Space jump   Shift dash (invulnerable)   J / Left-click attack (also parries the bulb)   R restart   2 / 3 skip to boss phase 2 / 3"

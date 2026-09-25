@@ -1,49 +1,43 @@
-# Treant Boss — Progress Notes
+# Treant Boss
 
-## Context
-Take-home assignment for a Godot programmer role. Coming from a Unity/Unreal
-background (Unity state machines, Unreal State Trees + Blackboards). Goal:
-implement the Treant boss fight described in `PK_Boss_CDD.pdf`, using an
-event-based state machine approach, third-party plugin allowed per the
-studio's instructions.
+A 2D side-view boss fight in **Godot 4.7**: a corrupted Treant with three phases, built on a state chart.
 
-## Decisions made
-- **Engine:** Godot 4.7 (stable), Forward+ renderer (desktop/PC target).
-- **State machine approach:** [Godot State Charts](https://github.com/derkork/godot-statecharts)
-  by derkork — a Harel-statechart plugin (hierarchical + parallel states,
-  event-driven transitions, guard expressions). Closest match in Godot to the
-  Unreal State Tree / Blackboard pattern already familiar from past work.
-  Chosen over hand-rolling a custom FSM (would show less Godot-native
-  knowledge) and over LimboAI (heavier behavior-tree/blackboard framework,
-  more than this fight needs).
+## Run it
 
-## Environment setup completed
-- [x] Godot 4.7 installed.
-- [x] Project created: `D:\treant-boss`, Git version-control metadata enabled.
-- [x] `Godot State Charts` addon installed (Asset Store, submitted by
-      `derkork`, MIT) and enabled in Project Settings (`editor_plugins/enabled`).
-- [x] Spine runtime (spine-godot 4.3 GDExtension) installed in `bin/spine/`.
-      Godot loads it automatically at startup.
-- [x] Player character: the provided `pk_player` Spine rig, in `assets/player/`.
+1. Clone the repo and open the folder in **Godot 4.7** (the standard build, not .NET).
+2. Press **F5**.
 
-## Current status
-- Playable 2D side-view prototype: `scenes/arena/test_arena.tscn` is the main
-  scene (F5 in Godot). The player is the animated `pk_player` Spine character;
-  the boss and arena still use placeholder art.
-- Full boss flow per the CDD is implemented and verified live: Idle → Aggro
-  (Melee combo ↔ Long-range sweeps, Root Attack below 50% HP, Enraged at ≤10%
-  HP) → Defeated / cleansing, plus a stagger when the player parries the bulb
-  and a Victory state when the player dies.
-- The state chart owns the whole fight: every beat of every attack
-  (approach, telegraph, active, recover) is a state with a delayed
-  transition timed from the attack's `.tres`. Phases and the root-attack
-  cooldown are parallel regions linked by guards. Scripts only react to state
-  enter/exit and report events, so any attack can be interrupted cleanly.
-- **See [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md)** for controls, the
-  Godot concepts used, the state chart, every attack, the Spine player setup,
-  a CDD tally, and how to tweak values.
+That's it. Everything it needs is in the repo, including the two plugins it uses.
 
-## Source document
-`PK_Boss_CDD.pdf` — Treant Boss creature design doc: 3 combat phases
-(melee+ranged, root hazard at <50% HP, enraged stat buffs at ≤10% HP), each
-attack type mapped to a distinct player response (evade / jump / reposition).
+## Controls
+
+| Key | Action |
+|---|---|
+| A / D | Move (hold **Ctrl** to walk) |
+| Space | Jump |
+| Shift | Dash (you can't be hit while dashing) |
+| J or left-click | Attack. Hit the spiked bulb as it reaches you to **parry** it and stagger the boss. |
+| R | Restart |
+| 2 / 3 | Skip the boss to phase 2 / phase 3 (for testing) |
+
+## The fight
+
+Walk past the red line to wake the boss.
+
+- **Phase 1:** a combo of 3–6 melee swings, sometimes with a thrown spiked bulb, then 3 long-range sweeps along the ground. Dodge the swings, jump the sweeps.
+- **Phase 2 (below 50% HP):** it also runs to a corner and summons root spikes from the ground. Move off the red warnings.
+- **Phase 3 (10% HP):** enraged. Attacks are 10% faster and hit 10% harder.
+
+Every attack shows where it will land before it hits.
+
+## How it's built
+
+- **Boss AI:** a [Godot State Charts](https://github.com/derkork/godot-statecharts) state chart in `scenes/boss/treant_boss.tscn`. It controls every beat of every attack and when it happens. Scripts in `scripts/boss/` only handle what each state looks like and what it hits.
+- **Attack tuning:** each attack's timing and damage is a resource in `resources/attacks/`.
+- **Player:** an animated [Spine](https://esotericsoftware.com/) character. The Spine runtime is in `bin/spine/`.
+
+For the details (the full state chart, every attack, and what to tweak where), see **[docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)**.
+
+## Status
+
+The boss and arena use placeholder art. The player uses final art. There's no audio yet.

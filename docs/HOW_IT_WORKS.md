@@ -20,6 +20,7 @@ A guide to this project for someone new to Godot. It covers how to run it, the G
 | Shift (while moving) | Dash. You're **invulnerable** during the dash (you turn see-through). This is the CDD's "evade". You're also invulnerable for 0.5s after taking a hit (you flicker). |
 | J or Left-click | Attack, 12 damage. You always swing toward the boss. Swinging as the spiked bulb reaches you **parries** it. |
 | R | Restart the fight |
+| 2 / 3 | Debug: drop the boss to just under 50% / 10% HP, to jump to phase 2 / 3 (`test_arena.gd`) |
 
 What you'll see: you play an animated Spine character (§6), starting at the left end of a long platform with the boss idle ahead of you. A **red line with a post** on the ground marks its aggro range; nothing happens until you cross it. The camera follows you and leans toward the boss. Once the fight starts: yellow numbers over the boss are damage you dealt, red numbers over you are damage you took. The boss's health bar goes green → yellow below 50% (Phase 2) → red at 10% (Phase 3). The text above the boss shows its current state/attack. That text is a debug aid, not final UI.
 
