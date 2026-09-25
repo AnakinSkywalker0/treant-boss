@@ -10,5 +10,4 @@ telegraph_time = 0.6
 active_time = 0.8
 recovery_time = 0.5
 damage = 8.0
-range = 10.0
 debug_color = Color(0.7, 0.15, 0.6, 1)

@@ -4,4 +4,4 @@
 
 [resource]
 script = ExtResource("1_0wol4")
-expression = "hp_percent <= 0.5 and root_ready"
+expression = "hp_percent < 0.5 and root_ready"

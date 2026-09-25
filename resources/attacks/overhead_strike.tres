@@ -10,4 +10,6 @@ telegraph_time = 0.7
 active_time = 0.25
 recovery_time = 0.5
 damage = 16.0
+hitbox_size = Vector2(140, 200)
+hitbox_offset = Vector2(50, 0)
 debug_color = Color(0.9, 0.2, 0.1, 1)

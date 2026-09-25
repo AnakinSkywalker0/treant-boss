@@ -6,23 +6,22 @@ extends CharacterBody2D
 ## scripts/boss/attacks/ call. The state chart only decides WHEN something
 ## happens; these helpers and the attack scripts decide HOW.
 
-const ATTACK_RESOURCE_PATHS := [
+const MELEE_ATTACK_PATHS := [
 	"res://resources/attacks/arm_swipe.tres",
 	"res://resources/attacks/overhead_strike.tres",
 	"res://resources/attacks/ground_smash.tres",
 	"res://resources/attacks/root_arm_attack.tres",
-	"res://resources/attacks/projectile_throw.tres",
 ]
+const PROJECTILE_ATTACK_PATH := "res://resources/attacks/projectile_throw.tres"
 
 const PLAYER_HURTBOX_MASK := 1 << 1 # physics layer 2, "player_hurtbox"
-const ARENA_HALF_EXTENT := 420.0
+const ARENA_FALLBACK_HALF_EXTENT := 420.0 # only used if the level has no corner markers
 
 const MELEE_APPROACH_RANGE := 130.0 # CDD: boss "stays relatively close to the player"
 const MELEE_APPROACH_SPEED := 340.0
 
 const LONG_RANGE_RETREAT_DISTANCE := 260.0
-const LONG_RANGE_BASE_RANGE := 160.0
-const LONG_RANGE_RANGE_STEP := 110.0
+const LONG_RANGE_REACH_FRACTIONS := [0.25, 0.4, 0.55] # of arena width, one per sweep
 const LONG_RANGE_LOCAL_Y := 65.0 # low sweep near the ground so a jump clears it
 const LONG_RANGE_DAMAGE := 12.0
 const LIMB_THICKNESS := 24.0
@@ -37,10 +36,12 @@ const PROJECTILE_RADIUS := 14.0
 const ROOT_DAMAGE := 15.0
 const ROOT_SIZE := Vector2(70, 170) # taller than the player can jump: must reposition
 const ROOT_MIN_SPACING := 160.0
+const ROOT_SPREAD := 450.0 # the extra roots land within this distance of the player
 const ROOT_CHANNEL_TIME := 1.3
 const ROOT_ACTIVE_TIME := 1.4
 const ROOT_RECOVERY_TIME := 0.6
 const ROOT_COOLDOWN_CYCLES := 1 # long-range sequences to sit out after a root attack
+const CORNER_RUN_SPEED := 450.0
 
 const ENRAGE_MULTIPLIER := 1.1 # CDD: +10% attack speed, +10% attack damage
 const ENRAGE_VFX_SCALE := 1.3
@@ -71,7 +72,8 @@ const CLEANSED_COLOR := Color(0.65, 0.95, 0.55)
 @onready var health_bar: Node2D = $HealthBar
 @onready var health_bar_fill: ColorRect = $HealthBar/BarFill
 
-var attack_pool: Array[AttackData] = []
+var melee_attacks: Array[AttackData] = []
+var projectile_attack: AttackData
 var player: Node2D = null
 var attack_speed_mult := 1.0
 var attack_damage_mult := 1.0
@@ -85,12 +87,16 @@ var _base_body_color: Color
 var _idle_tween: Tween
 var _glow_tween: Tween
 var _root_cooldown := 0
+var _arena_min_x := -ARENA_FALLBACK_HALF_EXTENT
+var _arena_max_x := ARENA_FALLBACK_HALF_EXTENT
 var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.randomize()
-	for path in ATTACK_RESOURCE_PATHS:
-		attack_pool.append(load(path) as AttackData)
+	_read_arena_bounds()
+	for path in MELEE_ATTACK_PATHS:
+		melee_attacks.append(load(path) as AttackData)
+	projectile_attack = load(PROJECTILE_ATTACK_PATH) as AttackData
 
 	_base_body_color = body_sprite.modulate
 	limb_indicator.visible = false
@@ -144,7 +150,7 @@ func _on_health_changed(_current: float, _max_hp: float, percent: float) -> void
 func _update_health_bar(percent: float) -> void:
 	const FULL_WIDTH := 156.0
 	health_bar_fill.size.x = FULL_WIDTH * clampf(percent, 0.0, 1.0)
-	if percent > 0.5:
+	if percent >= 0.5:
 		health_bar_fill.color = Color(0.25, 0.8, 0.25)
 	elif percent > 0.1:
 		health_bar_fill.color = Color(0.9, 0.75, 0.15)
@@ -181,6 +187,19 @@ func _on_idle_exited() -> void:
 	if _idle_tween:
 		_idle_tween.kill()
 	body_sprite.scale = Vector2.ONE
+	create_tween().tween_property(detection, "modulate:a", 0.0, 0.4)
+
+## The level defines the fight's extent with "boss_arena_corner" markers,
+## so the arena can be resized without touching this script.
+func _read_arena_bounds() -> void:
+	var corners := get_tree().get_nodes_in_group("boss_arena_corner")
+	if corners.size() < 2:
+		return
+	_arena_min_x = INF
+	_arena_max_x = -INF
+	for corner: Node2D in corners:
+		_arena_min_x = minf(_arena_min_x, corner.global_position.x)
+		_arena_max_x = maxf(_arena_max_x, corner.global_position.x)
 
 ## CDD Phase 3: red glow, more crimson particles, stronger attack VFX,
 ## +10% attack speed and damage. Same attack patterns, just harder.
@@ -248,7 +267,7 @@ func approach_player_if_needed() -> void:
 		face_player()
 		return
 	var target_x := player.global_position.x - signf(dx) * MELEE_APPROACH_RANGE
-	target_x = clampf(target_x, -ARENA_HALF_EXTENT, ARENA_HALF_EXTENT)
+	target_x = clampf(target_x, _arena_min_x, _arena_max_x)
 	var duration := maxf(absf(target_x - global_position.x) / MELEE_APPROACH_SPEED, 0.1)
 	await move_to_position(Vector2(target_x, global_position.y), duration)
 
@@ -259,7 +278,7 @@ func move_away_from_player(distance: float, duration: float = 1.0) -> void:
 		if dx != 0.0:
 			dir = signf(dx)
 	var target := global_position + Vector2(dir * distance, 0.0)
-	target.x = clampf(target.x, -ARENA_HALF_EXTENT, ARENA_HALF_EXTENT)
+	target.x = clampf(target.x, _arena_min_x, _arena_max_x)
 	await move_to_position(target, duration)
 
 func move_to_position(target: Vector2, duration: float = 1.0) -> void:
@@ -276,16 +295,14 @@ func perform_attack(atk: AttackData) -> void:
 		return
 	state_label.text = "MELEE: " + atk.display_name
 	body_sprite.modulate = atk.debug_color
+	_set_melee_area(atk)
 	melee_indicator.visible = true
-	melee_indicator.modulate = atk.debug_color
-	melee_indicator.scale = Vector2(0.4, 0.4) * vfx_scale
-	melee_indicator.position = Vector2(60, 0)
+	melee_indicator.modulate = Color(atk.debug_color, 0.3)
 	await get_tree().create_timer(atk.telegraph_time / attack_speed_mult).timeout
 	if is_defeated:
 		return
 
-	melee_indicator.scale = Vector2.ONE * vfx_scale
-	melee_indicator.position = Vector2(100, 0)
+	melee_indicator.modulate = _active_color(Color(atk.debug_color, 0.8))
 	melee_hitbox.activate(atk.damage * attack_damage_mult)
 	await get_tree().create_timer(atk.active_time / attack_speed_mult).timeout
 	melee_hitbox.deactivate()
@@ -294,6 +311,20 @@ func perform_attack(atk: AttackData) -> void:
 		return
 	body_sprite.modulate = _base_body_color
 	await get_tree().create_timer(atk.recovery_time / attack_speed_mult).timeout
+
+## Sizes the melee hitbox and its indicator to this attack's rectangle, so
+## the telegraph shows exactly where the swing will land.
+func _set_melee_area(atk: AttackData) -> void:
+	var collision := melee_hitbox.get_node("CollisionShape2D") as CollisionShape2D
+	(collision.shape as RectangleShape2D).size = atk.hitbox_size
+	collision.position = atk.hitbox_offset
+	melee_indicator.position = atk.hitbox_offset
+	melee_indicator.scale = atk.hitbox_size / melee_indicator.texture.get_size()
+
+## Enraged attacks flash hotter (CDD: "stronger attack VFX"). Indicator
+## sizes stay put because they always match the real hitbox.
+func _active_color(base: Color) -> Color:
+	return base.lerp(Color.WHITE, 0.35) if vfx_scale > 1.0 else base
 
 ## The spiked bulb is ranged, so it's thrown from wherever the boss stands
 ## rather than after walking up to the player.
@@ -312,9 +343,10 @@ func perform_projectile_throw(atk: AttackData) -> void:
 ## a thin line along the ground, so the player can see how far it will go.
 ## Positions are NOT multiplied by `facing`: the parent AttackOrigin is
 ## already mirrored via its scale.
-func perform_horizontal_attack(range_length: float) -> void:
+func perform_horizontal_attack(sweep_index: int) -> void:
 	face_player()
-	state_label.text = "LONG-RANGE (reach %d)" % roundi(range_length)
+	var range_length := long_range_reach(sweep_index)
+	state_label.text = "LONG-RANGE %d/%d" % [sweep_index + 1, LONG_RANGE_REACH_FRACTIONS.size()]
 	var tex_size := limb_indicator.texture.get_size()
 	var center := Vector2(range_length / 2.0, LONG_RANGE_LOCAL_Y)
 
@@ -326,8 +358,8 @@ func perform_horizontal_attack(range_length: float) -> void:
 	if is_defeated:
 		return
 
-	limb_indicator.scale = Vector2(range_length, LIMB_THICKNESS * vfx_scale) / tex_size
-	limb_indicator.modulate = Color(0.9, 0.2, 0.1)
+	limb_indicator.scale = Vector2(range_length, LIMB_THICKNESS) / tex_size
+	limb_indicator.modulate = _active_color(Color(0.9, 0.2, 0.1))
 	var shape := (limb_hitbox.get_node("CollisionShape2D") as CollisionShape2D).shape as RectangleShape2D
 	shape.size = Vector2(range_length, LIMB_THICKNESS)
 	limb_hitbox.position = center
@@ -339,6 +371,14 @@ func perform_horizontal_attack(range_length: float) -> void:
 	if is_defeated:
 		return
 	await get_tree().create_timer(LIMB_RECOVERY_TIME / attack_speed_mult).timeout
+
+## CDD: the limb reaches "across the arena", each sweep further than the
+## last. Reaches are fractions of the arena width, cut off at the arena
+## edge the boss is facing.
+func long_range_reach(sweep_index: int) -> float:
+	var reach: float = (_arena_max_x - _arena_min_x) * LONG_RANGE_REACH_FRACTIONS[sweep_index]
+	var edge := _arena_max_x if facing > 0.0 else _arena_min_x
+	return minf(reach, absf(edge - global_position.x))
 
 func _spawn_projectile(atk: AttackData) -> void:
 	var bulb := SpikedBulb.new()
@@ -367,12 +407,12 @@ func _spawn_projectile(atk: AttackData) -> void:
 	tween.tween_property(bulb, "rotation", TAU * 3.0 * facing, travel_time)
 	tween.chain().tween_callback(bulb.queue_free)
 
+## CDD Phase 2: "moves to a corner of the arena". The nearer edge, so the
+## run stays short and on screen.
 func pick_corner() -> Vector2:
-	var corners := get_tree().get_nodes_in_group("boss_arena_corner")
-	if corners.is_empty():
-		return Vector2(ARENA_HALF_EXTENT * facing, global_position.y)
-	var corner: Node2D = corners[_rng.randi_range(0, corners.size() - 1)]
-	return corner.global_position
+	var to_left := absf(global_position.x - _arena_min_x)
+	var to_right := absf(global_position.x - _arena_max_x)
+	return Vector2(_arena_min_x if to_left <= to_right else _arena_max_x, global_position.y)
 
 ## CDD Phase 2: channel while the ground shows warnings, then three large
 ## spikey roots erupt. One always targets where the player is standing, so
@@ -408,15 +448,20 @@ func channel_roots() -> void:
 	await get_tree().create_timer(ROOT_RECOVERY_TIME / attack_speed_mult).timeout
 
 func _pick_root_positions(count: int) -> Array[Vector2]:
-	var limit := ARENA_HALF_EXTENT - ROOT_SIZE.x
+	var lo := _arena_min_x + ROOT_SIZE.x / 2.0
+	var hi := _arena_max_x - ROOT_SIZE.x / 2.0
 	var ground_y := global_position.y
+	var center := global_position.x
 	var positions: Array[Vector2] = []
 	if is_instance_valid(player):
-		positions.append(Vector2(clampf(player.global_position.x, -limit, limit), ground_y))
+		center = clampf(player.global_position.x, lo, hi)
+		positions.append(Vector2(center, ground_y))
+	var spread_lo := maxf(lo, center - ROOT_SPREAD)
+	var spread_hi := minf(hi, center + ROOT_SPREAD)
 	var attempts := 0
 	while positions.size() < count and attempts < 100:
 		attempts += 1
-		var candidate := Vector2(_rng.randf_range(-limit, limit), ground_y)
+		var candidate := Vector2(_rng.randf_range(spread_lo, spread_hi), ground_y)
 		var far_enough := true
 		for existing in positions:
 			if absf(existing.x - candidate.x) < ROOT_MIN_SPACING:

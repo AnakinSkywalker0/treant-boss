@@ -10,7 +10,6 @@
 [ext_resource type="Texture2D" uid="uid://d3snakqcs75mn" path="res://textures/unit_square.png" id="7_dy18l"]
 [ext_resource type="Script" uid="uid://jk2jm1g6q853" path="res://addons/godot_state_charts/compound_state.gd" id="7_pnru4"]
 [ext_resource type="Script" uid="uid://cytafq8i1y8qm" path="res://addons/godot_state_charts/atomic_state.gd" id="8_4r5vx"]
-[ext_resource type="Texture2D" uid="uid://qmfgxohawexy" path="res://textures/melee_swing.png" id="8_efjh8"]
 [ext_resource type="Script" uid="uid://cf1nsco3w0mf6" path="res://addons/godot_state_charts/transition.gd" id="9_egplq"]
 [ext_resource type="Script" uid="uid://c1vp0ojjvaby1" path="res://addons/godot_state_charts/parallel_state.gd" id="10_kuay0"]
 [ext_resource type="Resource" uid="uid://d05hoij0wrghc" path="res://resources/guards/hp_below_50_root_ready.tres" id="11_pb0e7"]
@@ -27,8 +26,8 @@ height = 200.0
 radius = 58.0
 height = 205.0
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_pnru4"]
-radius = 600.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dy18l"]
+size = Vector2(1000, 400)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_efjh8"]
 size = Vector2(180, 140)
@@ -90,8 +89,8 @@ collision_mask = 8
 script = ExtResource("4_dy18l")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=2094482842]
-position = Vector2(0, -90)
-shape = SubResource("CircleShape2D_pnru4")
+position = Vector2(0, -150)
+shape = SubResource("RectangleShape2D_dy18l")
 
 [node name="AttackOrigin" type="Marker2D" parent="." unique_id=1334430151]
 position = Vector2(0, -90)
@@ -121,7 +120,7 @@ shape = SubResource("RectangleShape2D_egplq")
 [node name="MeleeIndicator" type="Sprite2D" parent="AttackOrigin" unique_id=508748043]
 visible = false
 position = Vector2(90, 0)
-texture = ExtResource("8_efjh8")
+texture = ExtResource("7_dy18l")
 
 [node name="StateLabel" type="Label" parent="." unique_id=1026767197]
 custom_minimum_size = Vector2(320, 30)
