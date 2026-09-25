@@ -271,7 +271,7 @@ The animation only changes when the choice changes, so looping animations play s
 
 **Not used yet:** the rig also has `fire_ball`, `attack_sword_up`, `attack_sword_down` and an empty `animation`. It has no hit or death animation, so on death the player goes back to idle and darkens.
 
-**Re-exporting from Spine:** use Spine 4.3.x, because the runtime in `bin/spine/` is 4.3 and refuses other versions. Export as binary `.skel`, or as JSON renamed to `.spine-json`. On a fresh checkout, Godot may log "Can't load texture … pk_player.png" during the first import, because the atlas was imported before its PNG. It's harmless; the texture loads fine afterwards.
+**Re-exporting from Spine:** use Spine 4.3.x, because the runtime in `bin/spine/` is 4.3 and refuses other versions. Export as binary `.skel`, or as JSON renamed to `.spine-json`. **On a fresh checkout**, Godot scans the files before the Spine extension has registered its importers, so `.skel` and `.atlas` aren't imported on the first load and the player is invisible. The player script logs an error saying so. Use **Project → Reload Current Project** once and it imports properly from then on. The first import may also log "Can't load texture … pk_player.png"; that's harmless.
 
 ---
 

@@ -5,9 +5,10 @@ A 2D side-view boss fight in **Godot 4.7**: a corrupted Treant with three phases
 ## Run it
 
 1. Clone the repo and open the folder in **Godot 4.7** (the standard build, not .NET).
-2. Press **F5**.
+2. **First time only:** once it finishes importing, use **Project → Reload Current Project**. Godot imports files before it has loaded the Spine plugin, so the player's animations only import on the second load. Without this the player is invisible.
+3. Press **F5**.
 
-That's it. Everything it needs is in the repo, including the two plugins it uses.
+Everything it needs is in the repo, including the two plugins it uses.
 
 ## Controls
 

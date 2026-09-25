@@ -54,6 +54,10 @@ var _sprite_scale := 1.0
 
 func _ready() -> void:
 	_sprite_scale = absf(body_sprite.scale.x)
+	# On a fresh checkout Godot scans files before the Spine GDExtension has
+	# registered its importers, so the first run has no skeleton data.
+	if body_sprite.get_animation_state() == null:
+		push_error("Player's Spine animations aren't imported yet. Use Project > Reload Current Project once so the Spine extension can import assets/player/.")
 	health.health_changed.connect(_on_health_changed)
 	health.died.connect(_on_died)
 	_update_health_label(health.max_health, health.max_health)
@@ -101,6 +105,8 @@ func _physics_process(delta: float) -> void:
 ## Runs after move_and_slide() so is_on_floor() reflects this frame.
 ## Only switches when the choice changes, so looping animations keep playing.
 func _update_animation() -> void:
+	if body_sprite.get_animation_state() == null:
+		return # Spine data not imported yet (see _ready)
 	var anim := _choose_animation()
 	if anim != _anim:
 		_play_animation(anim)
@@ -131,6 +137,8 @@ func _current_animation_done() -> bool:
 func _play_animation(anim: String) -> SpineTrackEntry:
 	_anim = anim
 	var state := body_sprite.get_animation_state()
+	if state == null:
+		return null # Spine data not imported yet (see _ready)
 	var entry := state.set_animation(anim, anim in LOOPING_ANIMS, 0)
 	if anim == ANIM_JUMP_START:
 		state.add_animation(ANIM_JUMP_LOOP, 0.0, true, 0)
@@ -187,7 +195,9 @@ func _do_attack() -> void:
 	_attacking = true
 	_parry_window = true
 	_face_nearest_boss()
-	_play_animation(ANIM_ATTACK).set_time_scale(ATTACK_ANIM_SPEED)
+	var attack_anim := _play_animation(ANIM_ATTACK)
+	if attack_anim:
+		attack_anim.set_time_scale(ATTACK_ANIM_SPEED)
 	attack_origin.position.x = ATTACK_OFFSET * facing
 	# Keep alpha: _update_invulnerability() owns it.
 	body_sprite.modulate = Color(1.3, 1.3, 1.3, body_sprite.modulate.a)
