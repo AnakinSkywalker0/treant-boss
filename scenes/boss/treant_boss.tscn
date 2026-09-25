@@ -12,8 +12,14 @@
 [ext_resource type="Script" uid="uid://cytafq8i1y8qm" path="res://addons/godot_state_charts/atomic_state.gd" id="8_4r5vx"]
 [ext_resource type="Script" uid="uid://cf1nsco3w0mf6" path="res://addons/godot_state_charts/transition.gd" id="9_egplq"]
 [ext_resource type="Script" uid="uid://c1vp0ojjvaby1" path="res://addons/godot_state_charts/parallel_state.gd" id="10_kuay0"]
-[ext_resource type="Resource" uid="uid://d05hoij0wrghc" path="res://resources/guards/hp_below_50_root_ready.tres" id="11_pb0e7"]
+[ext_resource type="Resource" path="res://resources/guards/hp_below_50.tres" id="11_hp50"]
 [ext_resource type="Resource" uid="uid://dnc3meykhxma" path="res://resources/guards/hp_below_10.tres" id="12_6p603"]
+[ext_resource type="Script" uid="uid://le5w1cm0ul8p" path="res://addons/godot_state_charts/expression_guard.gd" id="13_expr"]
+[ext_resource type="Script" uid="uid://bambbrd2wupx0" path="res://addons/godot_state_charts/state_is_active_guard.gd" id="14_active"]
+[ext_resource type="Script" uid="uid://dgd4i8hrrxfvm" path="res://addons/godot_state_charts/not_guard.gd" id="15_not"]
+[ext_resource type="Script" uid="uid://dasoief04th7s" path="res://scripts/boss/attacks/melee_combo.gd" id="16_melee"]
+[ext_resource type="Script" uid="uid://covdg1487g17c" path="res://scripts/boss/attacks/long_range_attack.gd" id="17_long"]
+[ext_resource type="Script" uid="uid://cwqx2ssi17rr6" path="res://scripts/boss/attacks/root_attack.gd" id="18_root"]
 
 [sub_resource type="Gradient" id="Gradient_dy18l"]
 colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
@@ -34,6 +40,38 @@ size = Vector2(180, 140)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_egplq"]
 size = Vector2(160, 24)
+
+[sub_resource type="Resource" id="Resource_combo_done"]
+script = ExtResource("13_expr")
+expression = "combo_done"
+
+[sub_resource type="Resource" id="Resource_next_is_throw"]
+script = ExtResource("13_expr")
+expression = "next_is_throw"
+
+[sub_resource type="Resource" id="Resource_more_sweeps"]
+script = ExtResource("13_expr")
+expression = "not sweeps_done"
+
+[sub_resource type="Resource" id="Resource_roots_ready"]
+script = ExtResource("14_active")
+state = NodePath("../../../../Roots/Ready")
+
+[sub_resource type="Resource" id="Resource_root_attack_running"]
+script = ExtResource("14_active")
+state = NodePath("../../../Pattern/RootAttack")
+
+[sub_resource type="Resource" id="Resource_long_range_running"]
+script = ExtResource("14_active")
+state = NodePath("../../../../Pattern/LongRange")
+
+[sub_resource type="Resource" id="Resource_long_range_running_2"]
+script = ExtResource("14_active")
+state = NodePath("../../../../Pattern/LongRange")
+
+[sub_resource type="Resource" id="Resource_long_range_over"]
+script = ExtResource("15_not")
+guard = SubResource("Resource_long_range_running_2")
 
 [node name="TreantBoss" type="CharacterBody2D" unique_id=1893810821 groups=["boss"]]
 collision_layer = 16
@@ -137,9 +175,16 @@ horizontal_alignment = 1
 
 [node name="StateChart" type="Node" parent="." unique_id=1795590027]
 script = ExtResource("6_obukw")
+track_in_editor = true
 initial_expression_properties = {
+"active_time": 0.3,
+"combo_done": false,
 "hp_percent": 1.0,
-"root_ready": true
+"next_is_throw": false,
+"recovery_time": 0.4,
+"speed": 1.0,
+"sweeps_done": false,
+"telegraph_time": 0.5
 }
 
 [node name="Boss" type="Node" parent="StateChart" unique_id=801742304]
@@ -158,59 +203,285 @@ delay_in_seconds = "0.0"
 [node name="Aggro" type="Node" parent="StateChart/Boss" unique_id=49981566]
 script = ExtResource("10_kuay0")
 
-[node name="AttackPattern" type="Node" parent="StateChart/Boss/Aggro" unique_id=1380816278]
+[node name="ToVictory" type="Node" parent="StateChart/Boss/Aggro"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Victory")
+event = &"player_died"
+delay_in_seconds = "0.0"
+
+[node name="Pattern" type="Node" parent="StateChart/Boss/Aggro" unique_id=1380816278]
 script = ExtResource("7_pnru4")
 initial_state = NodePath("Melee")
 
-[node name="Melee" type="Node" parent="StateChart/Boss/Aggro/AttackPattern" unique_id=1298181708]
-script = ExtResource("8_4r5vx")
-
-[node name="ToLongRange" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/Melee" unique_id=1023861964]
+[node name="ToStaggered" type="Node" parent="StateChart/Boss/Aggro/Pattern"]
 script = ExtResource("9_egplq")
-to = NodePath("../../LongRange")
-event = &"combo_finished"
+to = NodePath("../Staggered")
+event = &"parried"
 delay_in_seconds = "0.0"
 
-[node name="LongRange" type="Node" parent="StateChart/Boss/Aggro/AttackPattern" unique_id=380894192]
-script = ExtResource("8_4r5vx")
-
-[node name="ToRootAttack" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/LongRange" unique_id=1582521956]
-script = ExtResource("9_egplq")
-to = NodePath("../../RootAttack")
-event = &"ranged_finished"
-guard = ExtResource("11_pb0e7")
-delay_in_seconds = "0.0"
-
-[node name="ToMelee" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/LongRange" unique_id=1424654530]
-script = ExtResource("9_egplq")
-to = NodePath("../../Melee")
-event = &"ranged_finished"
-delay_in_seconds = "0.0"
-
-[node name="RootAttack" type="Node" parent="StateChart/Boss/Aggro/AttackPattern" unique_id=1134638201]
-script = ExtResource("8_4r5vx")
-
-[node name="ToMelee" type="Node" parent="StateChart/Boss/Aggro/AttackPattern/RootAttack" unique_id=1572866516]
-script = ExtResource("9_egplq")
-to = NodePath("../../Melee")
-event = &"root_finished"
-delay_in_seconds = "0.0"
-
-[node name="EnrageTrack" type="Node" parent="StateChart/Boss/Aggro" unique_id=1126465343]
+[node name="Melee" type="Node" parent="StateChart/Boss/Aggro/Pattern" unique_id=1298181708]
 script = ExtResource("7_pnru4")
-initial_state = NodePath("Normal")
+initial_state = NodePath("NextMove")
 
-[node name="Normal" type="Node" parent="StateChart/Boss/Aggro/EnrageTrack" unique_id=1022278686]
+[node name="NextMove" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee"]
 script = ExtResource("8_4r5vx")
 
-[node name="ToEnraged" type="Node" parent="StateChart/Boss/Aggro/EnrageTrack/Normal" unique_id=727708739]
+[node name="ToLongRange" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/NextMove"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../LongRange")
+event = &"next"
+guard = SubResource("Resource_combo_done")
+delay_in_seconds = "0.0"
+
+[node name="ToThrow" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/NextMove"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Throw")
+event = &"next"
+guard = SubResource("Resource_next_is_throw")
+delay_in_seconds = "0.0"
+
+[node name="ToSwing" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/NextMove"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Swing")
+event = &"next"
+delay_in_seconds = "0.0"
+
+[node name="Swing" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee"]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Approach")
+
+[node name="Approach" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToTelegraph" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing/Approach"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Telegraph")
+event = &"arrived"
+delay_in_seconds = "0.0"
+
+[node name="Telegraph" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToActive" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing/Telegraph"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Active")
+delay_in_seconds = "telegraph_time / speed"
+
+[node name="Active" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToRecover" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing/Active"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Recover")
+delay_in_seconds = "active_time / speed"
+
+[node name="Recover" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToNextMove" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Swing/Recover"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../NextMove")
+delay_in_seconds = "recovery_time / speed"
+
+[node name="Throw" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee"]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Windup")
+
+[node name="Windup" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Throw"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToRelease" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Throw/Windup"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Release")
+delay_in_seconds = "telegraph_time / speed"
+
+[node name="Release" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Throw"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToNextMove" type="Node" parent="StateChart/Boss/Aggro/Pattern/Melee/Throw/Release"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../NextMove")
+delay_in_seconds = "recovery_time / speed"
+
+[node name="LongRange" type="Node" parent="StateChart/Boss/Aggro/Pattern" unique_id=380894192]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Retreat")
+
+[node name="Retreat" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToNextSweep" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/Retreat"]
+script = ExtResource("9_egplq")
+to = NodePath("../../NextSweep")
+event = &"arrived"
+delay_in_seconds = "0.0"
+
+[node name="NextSweep" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToSweep" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/NextSweep"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Sweep")
+event = &"next"
+guard = SubResource("Resource_more_sweeps")
+delay_in_seconds = "0.0"
+
+[node name="ToRootAttack" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/NextSweep"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../RootAttack")
+event = &"next"
+guard = SubResource("Resource_roots_ready")
+delay_in_seconds = "0.0"
+
+[node name="ToMelee" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/NextSweep"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../Melee")
+event = &"next"
+delay_in_seconds = "0.0"
+
+[node name="Sweep" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange"]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Telegraph")
+
+[node name="Telegraph" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/Sweep"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToActive" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/Sweep/Telegraph"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Active")
+delay_in_seconds = "telegraph_time / speed"
+
+[node name="Active" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/Sweep"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToRecover" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/Sweep/Active"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Recover")
+delay_in_seconds = "active_time / speed"
+
+[node name="Recover" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/Sweep"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToNextSweep" type="Node" parent="StateChart/Boss/Aggro/Pattern/LongRange/Sweep/Recover"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../NextSweep")
+delay_in_seconds = "recovery_time / speed"
+
+[node name="RootAttack" type="Node" parent="StateChart/Boss/Aggro/Pattern" unique_id=1134638201]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("RunToCorner")
+
+[node name="RunToCorner" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToChannel" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack/RunToCorner"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Channel")
+event = &"arrived"
+delay_in_seconds = "0.0"
+
+[node name="Channel" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToRootsUp" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack/Channel"]
+script = ExtResource("9_egplq")
+to = NodePath("../../RootsUp")
+delay_in_seconds = "telegraph_time / speed"
+
+[node name="RootsUp" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToRecover" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack/RootsUp"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Recover")
+delay_in_seconds = "active_time / speed"
+
+[node name="Recover" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToMelee" type="Node" parent="StateChart/Boss/Aggro/Pattern/RootAttack/Recover"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../Melee")
+delay_in_seconds = "recovery_time / speed"
+
+[node name="Staggered" type="Node" parent="StateChart/Boss/Aggro/Pattern"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToMelee" type="Node" parent="StateChart/Boss/Aggro/Pattern/Staggered"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Melee")
+delay_in_seconds = "1.5"
+
+[node name="Phase" type="Node" parent="StateChart/Boss/Aggro" unique_id=1126465343]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Phase1")
+
+[node name="Phase1" type="Node" parent="StateChart/Boss/Aggro/Phase" unique_id=1022278686]
+script = ExtResource("8_4r5vx")
+
+[node name="ToPhase2" type="Node" parent="StateChart/Boss/Aggro/Phase/Phase1"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Phase2")
+guard = ExtResource("11_hp50")
+delay_in_seconds = "0.0"
+
+[node name="Phase2" type="Node" parent="StateChart/Boss/Aggro/Phase"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToEnraged" type="Node" parent="StateChart/Boss/Aggro/Phase/Phase2" unique_id=727708739]
 script = ExtResource("9_egplq")
 to = NodePath("../../Enraged")
-event = &"health_changed"
 guard = ExtResource("12_6p603")
 delay_in_seconds = "0.0"
 
-[node name="Enraged" type="Node" parent="StateChart/Boss/Aggro/EnrageTrack" unique_id=406160606]
+[node name="Enraged" type="Node" parent="StateChart/Boss/Aggro/Phase" unique_id=406160606]
+script = ExtResource("8_4r5vx")
+
+[node name="Roots" type="Node" parent="StateChart/Boss/Aggro"]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("Locked")
+
+[node name="Locked" type="Node" parent="StateChart/Boss/Aggro/Roots"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToReady" type="Node" parent="StateChart/Boss/Aggro/Roots/Locked"]
+script = ExtResource("9_egplq")
+to = NodePath("../../Ready")
+guard = ExtResource("11_hp50")
+delay_in_seconds = "0.0"
+
+[node name="Ready" type="Node" parent="StateChart/Boss/Aggro/Roots"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToCoolingDown" type="Node" parent="StateChart/Boss/Aggro/Roots/Ready"]
+script = ExtResource("9_egplq")
+to = NodePath("../../CoolingDown")
+guard = SubResource("Resource_root_attack_running")
+delay_in_seconds = "0.0"
+
+[node name="CoolingDown" type="Node" parent="StateChart/Boss/Aggro/Roots"]
+script = ExtResource("7_pnru4")
+initial_state = NodePath("WaitForLongRange")
+
+[node name="WaitForLongRange" type="Node" parent="StateChart/Boss/Aggro/Roots/CoolingDown"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToInLongRange" type="Node" parent="StateChart/Boss/Aggro/Roots/CoolingDown/WaitForLongRange"]
+script = ExtResource("9_egplq")
+to = NodePath("../../InLongRange")
+guard = SubResource("Resource_long_range_running")
+delay_in_seconds = "0.0"
+
+[node name="InLongRange" type="Node" parent="StateChart/Boss/Aggro/Roots/CoolingDown"]
+script = ExtResource("8_4r5vx")
+
+[node name="ToReady" type="Node" parent="StateChart/Boss/Aggro/Roots/CoolingDown/InLongRange"]
+script = ExtResource("9_egplq")
+to = NodePath("../../../Ready")
+guard = SubResource("Resource_long_range_over")
+delay_in_seconds = "0.0"
+
+[node name="Victory" type="Node" parent="StateChart/Boss"]
 script = ExtResource("8_4r5vx")
 
 [node name="Defeated" type="Node" parent="StateChart/Boss" unique_id=1947085457]
@@ -221,6 +492,17 @@ script = ExtResource("9_egplq")
 to = NodePath("../Defeated")
 event = &"died"
 delay_in_seconds = "0.0"
+
+[node name="Behaviours" type="Node" parent="."]
+
+[node name="MeleeCombo" type="Node" parent="Behaviours"]
+script = ExtResource("16_melee")
+
+[node name="LongRangeAttack" type="Node" parent="Behaviours"]
+script = ExtResource("17_long")
+
+[node name="RootAttack" type="Node" parent="Behaviours"]
+script = ExtResource("18_root")
 
 [node name="HealthBar" type="Node2D" parent="." unique_id=1240779936]
 position = Vector2(-80, -230)
@@ -236,3 +518,38 @@ offset_top = 2.0
 offset_right = 158.0
 offset_bottom = 14.0
 color = Color(0.25, 0.8, 0.25, 1)
+
+[connection signal="state_entered" from="StateChart/Boss/Idle" to="." method="_on_idle_entered"]
+[connection signal="state_exited" from="StateChart/Boss/Idle" to="." method="_on_idle_exited"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/Melee" to="." method="_on_attack_state_exited"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/LongRange" to="." method="_on_attack_state_exited"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/RootAttack" to="." method="_on_attack_state_exited"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Staggered" to="." method="_on_staggered_entered"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/Staggered" to="." method="_on_staggered_exited"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Phase/Phase1" to="." method="_on_phase1_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Phase/Phase2" to="." method="_on_phase2_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Phase/Enraged" to="." method="_on_enraged_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Victory" to="." method="_on_victory_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Defeated" to="." method="_on_defeated_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee" to="Behaviours/MeleeCombo" method="_on_melee_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee/NextMove" to="Behaviours/MeleeCombo" method="_on_next_move_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee/Swing/Approach" to="Behaviours/MeleeCombo" method="_on_approach_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee/Swing/Telegraph" to="Behaviours/MeleeCombo" method="_on_telegraph_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee/Swing/Active" to="Behaviours/MeleeCombo" method="_on_active_entered"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/Melee/Swing/Active" to="Behaviours/MeleeCombo" method="_on_active_exited"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee/Swing/Recover" to="Behaviours/MeleeCombo" method="_on_recover_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee/Throw/Windup" to="Behaviours/MeleeCombo" method="_on_windup_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/Melee/Throw/Release" to="Behaviours/MeleeCombo" method="_on_release_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/LongRange" to="Behaviours/LongRangeAttack" method="_on_long_range_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/LongRange/Retreat" to="Behaviours/LongRangeAttack" method="_on_retreat_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/LongRange/NextSweep" to="Behaviours/LongRangeAttack" method="_on_next_sweep_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/LongRange/Sweep/Telegraph" to="Behaviours/LongRangeAttack" method="_on_telegraph_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/LongRange/Sweep/Active" to="Behaviours/LongRangeAttack" method="_on_active_entered"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/LongRange/Sweep/Active" to="Behaviours/LongRangeAttack" method="_on_active_exited"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/RootAttack" to="Behaviours/RootAttack" method="_on_root_attack_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/RootAttack/RunToCorner" to="Behaviours/RootAttack" method="_on_run_to_corner_entered"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/RootAttack/Channel" to="Behaviours/RootAttack" method="_on_channel_entered"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/RootAttack/Channel" to="Behaviours/RootAttack" method="_on_channel_exited"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/RootAttack/RootsUp" to="Behaviours/RootAttack" method="_on_roots_up_entered"]
+[connection signal="state_exited" from="StateChart/Boss/Aggro/Pattern/RootAttack/RootsUp" to="Behaviours/RootAttack" method="_on_roots_up_exited"]
+[connection signal="state_entered" from="StateChart/Boss/Aggro/Pattern/RootAttack/Recover" to="Behaviours/RootAttack" method="_on_recover_entered"]

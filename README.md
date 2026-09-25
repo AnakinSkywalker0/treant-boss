@@ -31,8 +31,14 @@ studio's instructions.
   scene (F5 in Godot). The player is the animated `pk_player` Spine character;
   the boss and arena still use placeholder art.
 - Full boss flow per the CDD is implemented and verified live: Idle → Aggro
-  (Melee combo ↔ Long-range sweeps, Root Attack below 50% HP, parallel Enraged
-  region at ≤10% HP) → Defeated / cleansing.
+  (Melee combo ↔ Long-range sweeps, Root Attack below 50% HP, Enraged at ≤10%
+  HP) → Defeated / cleansing, plus a stagger when the player parries the bulb
+  and a Victory state when the player dies.
+- The state chart owns the whole fight: every beat of every attack
+  (approach, telegraph, active, recover) is a state with a delayed
+  transition timed from the attack's `.tres`. Phases and the root-attack
+  cooldown are parallel regions linked by guards. Scripts only react to state
+  enter/exit and report events, so any attack can be interrupted cleanly.
 - **See [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md)** for controls, the
   Godot concepts used, the state chart, every attack, the Spine player setup,
   a CDD tally, and how to tweak values.

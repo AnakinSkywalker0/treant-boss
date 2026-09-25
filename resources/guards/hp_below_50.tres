@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="ExpressionGuard" format=3 uid="uid://d05hoij0wrghc"]
+[gd_resource type="Resource" script_class="ExpressionGuard" format=3]
 
 [ext_resource type="Script" uid="uid://le5w1cm0ul8p" path="res://addons/godot_state_charts/expression_guard.gd" id="1_0wol4"]
 
 [resource]
 script = ExtResource("1_0wol4")
-expression = "hp_percent < 0.5 and root_ready"
+expression = "hp_percent < 0.5"

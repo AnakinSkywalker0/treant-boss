@@ -2,6 +2,11 @@ class_name AttackData
 extends Resource
 ## Data-driven description of a single boss attack. To add a melee attack,
 ## create a new .tres of this type and list it in TreantBoss.MELEE_ATTACK_PATHS.
+##
+## The three timings become the state chart's expression properties
+## telegraph_time / active_time / recovery_time while the attack runs, and
+## the delayed transitions between its Telegraph -> Active -> Recover states
+## read them (divided by `speed`, which rises when the boss is enraged).
 
 @export var id: StringName = &""
 @export var display_name: String = ""
@@ -10,15 +15,15 @@ extends Resource
 @export var telegraph_time: float = 0.5
 ## Seconds the hitbox/hazard is actually active.
 @export var active_time: float = 0.3
-## Seconds of recovery after the attack before another can start.
+## Seconds of recovery after the attack before the chart moves on.
 @export var recovery_time: float = 0.4
 
 @export var damage: float = 10.0
 
 ## Melee hitbox rectangle, relative to the boss's AttackOrigin (chest
 ## height): x points toward the player, +y is down, the ground is at y = 90.
-## This is what makes each melee attack dodge differently. Unused by the
-## projectile throw.
+## This is what makes each melee attack dodge differently. Only used by the
+## melee swings.
 @export var hitbox_size := Vector2(200, 90)
 @export var hitbox_offset := Vector2(80, 0)
 
