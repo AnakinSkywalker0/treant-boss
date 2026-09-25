@@ -15,6 +15,7 @@ A guide to this project for someone new to Godot. It covers how to run it, the G
 | Key | Action |
 |---|---|
 | A / D | Move left / right |
+| Ctrl (while moving) | Walk instead of run (120 vs 260 px/s), for careful positioning |
 | Space | Jump |
 | Shift (while moving) | Dash. You're **invulnerable** during the dash (you turn see-through). This is the CDD's "evade". You're also invulnerable for 0.5s after taking a hit (you flicker). |
 | J or Left-click | Attack, 12 damage. You always swing toward the boss. Swinging as the spiked bulb reaches you **parries** it. |
@@ -253,20 +254,21 @@ The player is `pk_player`, a character animated in [Spine](https://esotericsoftw
 |---|---|
 | Dashing | `dash` |
 | Attacking | `attack_sword` |
+| Just turned around on the ground | `flip` once (0.13s) |
 | In the air, rising | `jump_start`, then `jumping` |
 | In the air, falling | `fall` |
 | Just landed, standing still | `landing` once, then `idle` |
-| Moving on the ground | `run` |
+| Moving on the ground | `walk` at walking speed or slower, otherwise `run` |
 | Otherwise | `idle` |
 
 The animation only changes when the choice changes, so looping animations play smoothly. Attacks always restart, so back-to-back swings each play in full.
 
 **Three ways a `SpineSprite` differs from a `Sprite2D`:**
-- **Facing:** there's no `flip_h`, so the controller mirrors the character by making `scale.x` negative. The rig faces right.
+- **Facing:** there's no `flip_h`, so the controller mirrors the character by making `scale.x` negative. The rig faces right. The rig's own `flip` animation turns it from facing right to mirrored, so on a turn the controller mirrors the node first and plays `flip` *backwards* with no blend: it starts looking the old way and ends in the normal pose facing the new way.
 - **Transparency:** the see-through dash and the post-hit flicker set `modulate.a`, not `self_modulate`. `SpineSprite` draws each body part as a child mesh, and `self_modulate` doesn't reach children.
 - **Attack timing:** `attack_sword` draws its slash about 0.25s in, but the hitbox is only live from 0.08s to 0.20s into a swing. So the animation plays about 1.8× faster (`ATTACK_ANIM_SPEED`, worked out from the attack timing constants), and the slash shows while the hit is live.
 
-**Not used yet:** the rig also has `walk`, `flip`, `fire_ball`, `attack_sword_up`, `attack_sword_down` and an empty `animation`. It has no hit or death animation, so on death the player goes back to idle and darkens.
+**Not used yet:** the rig also has `fire_ball`, `attack_sword_up`, `attack_sword_down` and an empty `animation`. It has no hit or death animation, so on death the player goes back to idle and darkens.
 
 **Re-exporting from Spine:** use Spine 4.3.x, because the runtime in `bin/spine/` is 4.3 and refuses other versions. Export as binary `.skel`, or as JSON renamed to `.spine-json`. On a fresh checkout, Godot may log "Can't load texture … pk_player.png" during the first import, because the atlas was imported before its PNG. It's harmless; the texture loads fine afterwards.
 
@@ -312,7 +314,7 @@ This setup is what stops the boss hitting itself, and what lets you walk through
 | Sweep reach (25% / 40% / 55% of the arena width), retreat distance | `REACH_FRACTIONS`, `RETREAT_DISTANCE` at the top of `scripts/boss/attacks/long_range_attack.gd` |
 | Root spike size, count, spread around the player | Constants at the top of `scripts/boss/attacks/root_attack.gd` |
 | Walk/run speeds, approach distance, enrage multiplier | Constants at the top of `scripts/boss/treant_boss.gd` |
-| Player speed, jump, dash, attack damage | Constants at the top of `scripts/player/player_controller.gd` |
+| Player run/walk speed, jump, dash, attack damage | Constants at the top of `scripts/player/player_controller.gd` |
 | Player character size | `player.tscn` → `BodySprite` → Scale. Keep X and Y equal and positive; the script flips X for facing. |
 | Which Spine animation plays for what | `ANIM_*` constants at the top of `scripts/player/player_controller.gd` |
 | Blend time between player animations (0.1s) | Double-click `assets/player/pk_player_data.tres` → Default Mix (per-pair overrides under Animation Mixes) |
@@ -365,7 +367,7 @@ This setup is what stops the boss hitting itself, and what lets you walk through
 
 ## 10. Known gaps / next steps
 - The boss's and arena's art and animation, and all audio, are placeholders. The player uses its final Spine art.
-- The player rig has no hit or death animation, and several of its animations aren't hooked up yet (§6).
+- The player rig has no hit or death animation, and `fire_ball` plus the up/down sword attacks aren't hooked up yet (§6).
 - A parry staggers the boss but doesn't reflect the bulb back at it.
 - Only one root attack cooldown length is supported (one long-range sequence), because it's built from states. A longer cooldown means adding states to the `Roots` region.
 

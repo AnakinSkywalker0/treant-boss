@@ -5,6 +5,7 @@ extends CharacterBody2D
 ## Only exists to exercise the boss's behaviour during playtesting.
 
 const SPEED := 260.0
+const WALK_SPEED := 120.0 # while holding the walk key (Ctrl)
 const JUMP_VELOCITY := -480.0
 const DASH_SPEED := 620.0
 const DASH_TIME := 0.18
@@ -23,14 +24,16 @@ const ATTACK_ANIM_SPEED := ATTACK_ANIM_SLASH_TIME / (ATTACK_TELEGRAPH_TIME + ATT
 
 ## Animations in assets/player/player_pk.skel (Spine). The rig faces right.
 const ANIM_IDLE := "idle"
+const ANIM_WALK := "walk"
 const ANIM_RUN := "run"
+const ANIM_FLIP := "flip"
 const ANIM_JUMP_START := "jump_start"
 const ANIM_JUMP_LOOP := "jumping"
 const ANIM_FALL := "fall"
 const ANIM_LAND := "landing"
 const ANIM_DASH := "dash"
 const ANIM_ATTACK := "attack_sword"
-const LOOPING_ANIMS := [ANIM_IDLE, ANIM_RUN, ANIM_JUMP_LOOP]
+const LOOPING_ANIMS := [ANIM_IDLE, ANIM_WALK, ANIM_RUN, ANIM_JUMP_LOOP]
 
 @onready var body_sprite: SpineSprite = $BodySprite
 @onready var attack_hitbox: Hitbox = $AttackOrigin/AttackHitbox
@@ -73,11 +76,13 @@ func _physics_process(delta: float) -> void:
 		velocity.x = _dash_direction * DASH_SPEED
 	else:
 		var input_dir := Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
-		velocity.x = input_dir * SPEED
+		velocity.x = input_dir * (WALK_SPEED if Input.is_action_pressed("walk") else SPEED)
 
-		if input_dir != 0.0:
+		if input_dir != 0.0 and signf(input_dir) != facing:
 			facing = signf(input_dir)
 			_apply_facing()
+			if is_on_floor() and not _attacking:
+				_play_animation(ANIM_FLIP)
 
 		if Input.is_action_just_pressed("jump") and is_on_floor():
 			velocity.y = JUMP_VELOCITY
@@ -105,16 +110,22 @@ func _choose_animation() -> String:
 		return ANIM_DASH
 	if _attacking:
 		return ANIM_ATTACK
+	# A turn on the ground plays out (0.13s) before the next animation.
+	if _anim == ANIM_FLIP and not _current_animation_done():
+		return ANIM_FLIP
 	if not is_on_floor():
 		return ANIM_JUMP_START if velocity.y < 0.0 else ANIM_FALL
 	if velocity.x != 0.0:
-		return ANIM_RUN
+		return ANIM_WALK if absf(velocity.x) <= WALK_SPEED else ANIM_RUN
 	# Touching down while standing still plays the landing once, then idles.
 	if _anim == ANIM_JUMP_START or _anim == ANIM_FALL:
 		return ANIM_LAND
-	if _anim == ANIM_LAND and not body_sprite.get_animation_state().get_track(0).is_complete():
+	if _anim == ANIM_LAND and not _current_animation_done():
 		return ANIM_LAND
 	return ANIM_IDLE
+
+func _current_animation_done() -> bool:
+	return body_sprite.get_animation_state().get_track(0).is_complete()
 
 ## Always restarts `anim`, even if it's already playing (back-to-back attacks).
 func _play_animation(anim: String) -> SpineTrackEntry:
@@ -123,6 +134,14 @@ func _play_animation(anim: String) -> SpineTrackEntry:
 	var entry := state.set_animation(anim, anim in LOOPING_ANIMS, 0)
 	if anim == ANIM_JUMP_START:
 		state.add_animation(ANIM_JUMP_LOOP, 0.0, true, 0)
+	elif anim == ANIM_FLIP:
+		# `flip` turns the rig from its own facing to mirrored (main bone
+		# scaleX 1 -> -1). _apply_facing() has already mirrored the node to
+		# the new facing, so play it backwards: it starts looking the old way
+		# and ends looking the new way, in the rig's normal pose. No blend in,
+		# or the mix would half-turn the other way first.
+		entry.set_reverse(true)
+		entry.set_mix_duration(0.0)
 	return entry
 
 ## Single source of truth for "can I be hit right now?". Dashing (the CDD's
