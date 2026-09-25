@@ -179,7 +179,7 @@ StateChart
 
 **Why the decision states use an event.** `NextMove` and `NextSweep` last zero time. Their handler sets the properties the guards read, then sends `next`. The guarded transitions wait for `next` instead of firing automatically, so they're checked exactly once, after every property is set. An automatic guard is re-checked on every single property change, so it could act on a half-updated set of values.
 
-**Watching it live:** Track In Editor is on for `StateChart`. Run the game and open the State Charts tab in the bottom Debugger panel to watch the active states change, e.g. `Swing` stepping through Telegraph → Active → Recover.
+**Watching it live:** select the `StateChart` node and tick **Track In Editor** in the Inspector. Then run the game from the editor (F5) and open the State Charts tab in the bottom Debugger panel to watch the active states change, e.g. `Swing` stepping through Telegraph → Active → Recover. It's off by default because it logs "No active debugger" errors on every state change when the game runs outside the editor.
 
 ---
 

@@ -175,7 +175,6 @@ horizontal_alignment = 1
 
 [node name="StateChart" type="Node" parent="." unique_id=1795590027]
 script = ExtResource("6_obukw")
-track_in_editor = true
 initial_expression_properties = {
 "active_time": 0.3,
 "combo_done": false,
