@@ -1,0 +1,16 @@
+[remap]
+
+importer="spine.atlas"
+type="SpineAtlasResource"
+uid="uid://g6kdj1d7u4x"
+path="res://.godot/imported/pk_player.atlas-1816e315c24acf5710f4c78db14ae0d4.spatlas"
+
+[deps]
+
+source_file="res://assets/player/pk_player.atlas"
+dest_files=["res://.godot/imported/pk_player.atlas-1816e315c24acf5710f4c78db14ae0d4.spatlas"]
+
+[params]
+
+normal_map_prefix="n"
+specular_map_prefix="s"

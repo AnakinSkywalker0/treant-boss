@@ -1,0 +1,36 @@
+pk_player.png
+	size: 1024, 256
+	filter: Linear, Linear
+	pma: true
+blade
+	bounds: 2, 5, 340, 72
+body
+	bounds: 467, 175, 69, 114
+	rotate: 90
+cloak_left
+	bounds: 499, 5, 82, 121
+	rotate: 90
+cloak_middle
+	bounds: 344, 2, 78, 153
+	rotate: 90
+cloak_right
+	bounds: 464, 89, 72, 137
+	rotate: 90
+eye
+	bounds: 583, 179, 39, 65
+head
+	bounds: 709, 48, 196, 179
+	rotate: 90
+horn_left
+	bounds: 277, 163, 81, 188
+	rotate: 90
+horn_right
+	bounds: 277, 82, 79, 185
+	rotate: 90
+leg_left
+	bounds: 624, 220, 24, 83
+	rotate: 90
+leg_right
+	bounds: 603, 94, 27, 83
+slash
+	bounds: 2, 79, 273, 165

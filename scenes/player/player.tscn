@@ -1,12 +1,10 @@
 [gd_scene format=3 uid="uid://bed05ps5iwgnq"]
 
 [ext_resource type="Script" uid="uid://cny4kndyma1yi" path="res://scripts/player/player_controller.gd" id="1_dovo2"]
+[ext_resource type="SpineSkeletonDataResource" uid="uid://c8gwesxpunlg3" path="res://assets/player/pk_player_data.tres" id="2_0owmy"]
 [ext_resource type="Script" uid="uid://xgujyjm3qplb" path="res://scripts/common/hurtbox.gd" id="2_gmlin"]
-[ext_resource type="Texture2D" uid="uid://dvs2cbicnx5n2" path="res://textures/player_body.png" id="2_lvxji"]
 [ext_resource type="Script" uid="uid://dd88pgj1rx8rn" path="res://scripts/common/hitbox.gd" id="4_lvxji"]
-[ext_resource type="Texture2D" uid="uid://qmfgxohawexy" path="res://textures/melee_swing.png" id="5_75vfm"]
 [ext_resource type="Script" uid="uid://wn4ktt2x0gl8" path="res://scripts/common/health.gd" id="5_p47bc"]
-[ext_resource type="Texture2D" uid="uid://nyvrjgnu64ee" path="res://textures/facing_arrow.png" id="7_0owmy"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_p47bc"]
 radius = 22.0
@@ -23,9 +21,13 @@ size = Vector2(56, 70)
 collision_layer = 8
 script = ExtResource("1_dovo2")
 
-[node name="BodySprite" type="Sprite2D" parent="." unique_id=1803321620]
-position = Vector2(0, -48)
-texture = ExtResource("2_lvxji")
+[node name="BodySprite" type="SpineSprite" parent="." unique_id=325660512]
+skeleton_data_res = ExtResource("2_0owmy")
+preview_skin = "Default"
+preview_animation = "-- Empty --"
+preview_frame = false
+preview_time = 0.0
+scale = Vector2(0.25, 0.25)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=7763973]
 position = Vector2(0, -48)
@@ -52,11 +54,6 @@ script = ExtResource("4_lvxji")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AttackOrigin/AttackHitbox" unique_id=1040290456]
 shape = SubResource("RectangleShape2D_p47bc")
 
-[node name="AttackIndicator" type="Sprite2D" parent="AttackOrigin" unique_id=1270459872]
-visible = false
-modulate = Color(1, 1, 1, 0.9)
-texture = ExtResource("5_75vfm")
-
 [node name="Health" type="Node" parent="." unique_id=1609620832]
 script = ExtResource("5_p47bc")
 
@@ -69,9 +66,5 @@ offset_bottom = -117.0
 theme_override_font_sizes/font_size = 18
 text = "HP 100/100"
 horizontal_alignment = 1
-
-[node name="FacingMarker" type="Sprite2D" parent="." unique_id=1508333760]
-position = Vector2(30, -48)
-texture = ExtResource("7_0owmy")
 
 [connection signal="damaged" from="Hurtbox" to="." method="_on_hurtbox_damaged"]

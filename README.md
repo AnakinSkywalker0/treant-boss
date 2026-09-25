@@ -22,16 +22,20 @@ studio's instructions.
 - [x] Project created: `D:\treant-boss`, Git version-control metadata enabled.
 - [x] `Godot State Charts` addon installed (Asset Store, submitted by
       `derkork`, MIT) and enabled in Project Settings (`editor_plugins/enabled`).
+- [x] Spine runtime (spine-godot 4.3 GDExtension) installed in `bin/spine/`.
+      Godot loads it automatically at startup.
+- [x] Player character: the provided `pk_player` Spine rig, in `assets/player/`.
 
 ## Current status
-- Playable 2D side-view prototype with placeholder art: `scenes/arena/test_arena.tscn`
-  is the main scene (F5 in Godot).
+- Playable 2D side-view prototype: `scenes/arena/test_arena.tscn` is the main
+  scene (F5 in Godot). The player is the animated `pk_player` Spine character;
+  the boss and arena still use placeholder art.
 - Full boss flow per the CDD is implemented and verified live: Idle → Aggro
   (Melee combo ↔ Long-range sweeps, Root Attack below 50% HP, parallel Enraged
   region at ≤10% HP) → Defeated / cleansing.
 - **See [`docs/HOW_IT_WORKS.md`](docs/HOW_IT_WORKS.md)** for controls, the
-  Godot concepts used, the state chart, every attack, a CDD tally, and how to
-  tweak values.
+  Godot concepts used, the state chart, every attack, the Spine player setup,
+  a CDD tally, and how to tweak values.
 
 ## Source document
 `PK_Boss_CDD.pdf` — Treant Boss creature design doc: 3 combat phases

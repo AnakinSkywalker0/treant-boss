@@ -1,3 +1,6 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Temp copies Godot makes of GDExtension libraries on Windows (e.g. Spine)
+bin/**/~*
